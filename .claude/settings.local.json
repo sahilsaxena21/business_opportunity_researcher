@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip:*)",
+      "Bash(python:*)",
+      "Bash(cd C:/Users/Sahil/Documents/OD/ClaudeCodeTest/business_opportunity_researcher*)",
+      "Bash(git:*)",
+      "Bash(pytest:*)",
+      "Bash(python3:*)",
+      "Bash(claude --permission-mode acceptEdits)"
+    ]
+  }
+}
