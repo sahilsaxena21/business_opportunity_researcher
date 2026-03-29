@@ -3,8 +3,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple, TYPE_CHECKING
 
-import anthropic
-
 if TYPE_CHECKING:
     from tavily import TavilyClient
 
@@ -76,15 +74,15 @@ def _overlaps(a: str, b: str) -> bool:
 
 
 class Orchestrator:
-    def __init__(self, anthropic_client: anthropic.Anthropic, tavily_client: "TavilyClient"):
+    def __init__(self, tavily_client: "TavilyClient"):
         self.search_fn = make_search_fn(tavily_client)
-        self.consulting_agent = ConsultingTrendAgent(anthropic_client)
-        self.web_signal_agent = WebSignalAgent(anthropic_client)
-        self.market_sizing_agent = MarketSizingAgent(anthropic_client)
-        self.gap_analyst_agent = GapAnalystAgent(anthropic_client)
-        self.skill_fit_scorer_agent = SkillFitScorerAgent(anthropic_client)
-        self.report_writer_agent = ReportWriterAgent(anthropic_client)
-        self.critic_agent = CriticAgent(anthropic_client)
+        self.consulting_agent = ConsultingTrendAgent()
+        self.web_signal_agent = WebSignalAgent()
+        self.market_sizing_agent = MarketSizingAgent()
+        self.gap_analyst_agent = GapAnalystAgent()
+        self.skill_fit_scorer_agent = SkillFitScorerAgent()
+        self.report_writer_agent = ReportWriterAgent()
+        self.critic_agent = CriticAgent()
 
     def run(self, profile: dict) -> FinalReport:
         profile_summary = profile.get("raw", "")

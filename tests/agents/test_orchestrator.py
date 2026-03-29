@@ -1,3 +1,4 @@
+# tests/agents/test_orchestrator.py
 import pytest
 from unittest.mock import MagicMock
 from src.agents.orchestrator import Orchestrator, merge_candidates
@@ -29,5 +30,5 @@ def test_merge_empty_inputs():
 
 
 def test_orchestrator_initializes():
-    orch = Orchestrator(anthropic_client=MagicMock(), tavily_client=MagicMock())
+    orch = Orchestrator(tavily_client=MagicMock())
     assert orch is not None
