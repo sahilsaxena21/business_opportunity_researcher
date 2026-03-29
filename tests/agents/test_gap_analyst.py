@@ -1,6 +1,5 @@
 # tests/agents/test_gap_analyst.py
 import json
-import pytest
 from unittest.mock import patch
 from src.agents.gap_analyst import GapAnalystAgent
 from src.models.schemas import SizedOpportunity, GapAnalyzedOpportunity

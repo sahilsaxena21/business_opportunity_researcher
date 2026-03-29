@@ -1,6 +1,5 @@
 # tests/agents/test_skill_fit_scorer.py
 import json
-import pytest
 from unittest.mock import patch
 from src.agents.skill_fit_scorer import SkillFitScorerAgent
 from src.models.schemas import GapAnalyzedOpportunity, ScoredOpportunity

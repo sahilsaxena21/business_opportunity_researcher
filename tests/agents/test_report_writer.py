@@ -1,5 +1,4 @@
 # tests/agents/test_report_writer.py
-import pytest
 from unittest.mock import patch
 from src.agents.report_writer import ReportWriterAgent
 from src.models.schemas import ScoredOpportunity

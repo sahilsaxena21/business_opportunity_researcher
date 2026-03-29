@@ -1,5 +1,4 @@
 # tests/agents/test_consulting_trend.py
-import pytest
 from unittest.mock import patch
 from src.agents.consulting_trend import ConsultingTrendAgent
 from src.models.schemas import TrendCandidate

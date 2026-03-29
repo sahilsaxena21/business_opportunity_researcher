@@ -1,6 +1,5 @@
 # tests/agents/test_market_sizing.py
 import json
-import pytest
 from unittest.mock import patch
 from src.agents.market_sizing import MarketSizingAgent
 from src.models.schemas import OpportunityCandidate, SizedOpportunity

@@ -1,5 +1,4 @@
 # tests/agents/test_web_signal.py
-import pytest
 from unittest.mock import patch
 from src.agents.web_signal import WebSignalAgent
 from src.models.schemas import SignalCandidate

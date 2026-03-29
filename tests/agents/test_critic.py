@@ -1,6 +1,5 @@
 # tests/agents/test_critic.py
 import json
-import pytest
 from unittest.mock import patch
 from src.agents.critic import CriticAgent
 from src.models.schemas import CritiqueResult
