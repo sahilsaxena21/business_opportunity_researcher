@@ -1,5 +1,4 @@
 import sys
-import anthropic
 from tavily import TavilyClient
 
 from src import config
@@ -18,9 +17,8 @@ def main():
 
     print(f"Profile loaded: {profile['name']}\n")
 
-    anthropic_client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
     tavily_client = TavilyClient(api_key=config.TAVILY_API_KEY)
-    orchestrator = Orchestrator(anthropic_client=anthropic_client, tavily_client=tavily_client)
+    orchestrator = Orchestrator(tavily_client=tavily_client)
 
     report = orchestrator.run(profile)
 
