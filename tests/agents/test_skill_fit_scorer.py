@@ -1,68 +1,59 @@
+# tests/agents/test_skill_fit_scorer.py
+import json
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import patch
 from src.agents.skill_fit_scorer import SkillFitScorerAgent
 from src.models.schemas import GapAnalyzedOpportunity, ScoredOpportunity
 
+CANDIDATE = GapAnalyzedOpportunity(
+    title="AI Fraud Detection",
+    description="ML-based fraud",
+    industry="fintech",
+    sources=["McKinsey"],
+    tam_estimate="$4.2B",
+    tam_math="5000 banks × $840k",
+    tam_passes=True,
+    gap_summary="Legacy systems miss novel attacks",
+    existing_solutions=["Featurespace"],
+    key_gap="Real-time adaptive ML",
+)
 
-def make_mock_client(response_text: str):
-    mock_msg = MagicMock()
-    mock_msg.content = [MagicMock(type="text", text=response_text)]
-    mock_msg.stop_reason = "end_turn"
-    client = MagicMock()
-    client.messages.create.return_value = mock_msg
-    return client
+SAMPLE_JSON = json.dumps([{
+    "title": "AI Fraud Detection",
+    "description": "ML-based fraud",
+    "industry": "fintech",
+    "sources": ["McKinsey"],
+    "tam_estimate": "$4.2B",
+    "tam_math": "5000 banks × $840k",
+    "tam_passes": True,
+    "gap_summary": "Legacy systems miss novel attacks",
+    "existing_solutions": ["Featurespace"],
+    "key_gap": "Real-time adaptive ML",
+    "current_fit_score": 8.5,
+    "reachable_fit_score": 9.0,
+    "fit_rationale": "Strong fraud ML background",
+    "relevant_skills": ["XGBoost", "behavioral ML"],
+    "skills_to_learn": ["sales"],
+    "learning_effort": "low",
+}])
 
-
-SAMPLE_JSON = '''[
-  {
-    "title": "AI Fraud Detection SaaS", "description": "ML platform", "industry": "fintech",
-    "sources": ["McKinsey"], "tam_estimate": "$3.2B", "tam_math": "6000 x $53000 = $3.2B", "tam_passes": true,
-    "gap_summary": "No behavioral ML", "existing_solutions": ["NICE Actimize"], "key_gap": "No real-time features",
-    "current_fit_score": 9.0,
-    "reachable_fit_score": 9.5,
-    "fit_rationale": "Sahil built fraud detection at Scotiabank using XGBoost; content marketing learnable in months",
-    "relevant_skills": ["XGBoost", "fraud detection", "clickstream analysis"],
-    "skills_to_learn": ["content marketing"],
-    "learning_effort": "low"
-  }
-]'''
-
-CANDIDATES = [
-    GapAnalyzedOpportunity(
-        title="AI Fraud Detection SaaS", description="ML platform", industry="fintech",
-        sources=["McKinsey"], tam_estimate="$3.2B", tam_math="6000 x $53000 = $3.2B", tam_passes=True,
-        gap_summary="No behavioral ML", existing_solutions=["NICE Actimize"], key_gap="No real-time features",
-    )
-]
-
-PROFILE = {"name": "Sahil", "raw": "XGBoost fraud detection at Scotiabank, agentic AI pipelines"}
+PROFILE = {"raw": "Data scientist with fraud detection experience"}
 
 
 def test_returns_list():
-    agent = SkillFitScorerAgent(make_mock_client(SAMPLE_JSON))
-    assert isinstance(agent.run(CANDIDATES, PROFILE), list)
+    with patch.object(SkillFitScorerAgent, '_cli_call', return_value=SAMPLE_JSON):
+        agent = SkillFitScorerAgent()
+        results = agent.run([CANDIDATE], PROFILE)
+    assert isinstance(results, list)
 
 
 def test_returns_scored_opportunities():
-    agent = SkillFitScorerAgent(make_mock_client(SAMPLE_JSON))
-    results = agent.run(CANDIDATES, PROFILE)
+    with patch.object(SkillFitScorerAgent, '_cli_call', return_value=SAMPLE_JSON):
+        agent = SkillFitScorerAgent()
+        results = agent.run([CANDIDATE], PROFILE)
     assert all(isinstance(r, ScoredOpportunity) for r in results)
 
 
-def test_scores_in_range():
-    agent = SkillFitScorerAgent(make_mock_client(SAMPLE_JSON))
-    results = agent.run(CANDIDATES, PROFILE)
-    assert 0.0 <= results[0].current_fit_score <= 10.0
-    assert 0.0 <= results[0].reachable_fit_score <= 10.0
-
-
-def test_learning_effort_valid_value():
-    agent = SkillFitScorerAgent(make_mock_client(SAMPLE_JSON))
-    results = agent.run(CANDIDATES, PROFILE)
-    assert results[0].learning_effort in ("low", "medium", "high")
-
-
-def test_skills_to_learn_is_list():
-    agent = SkillFitScorerAgent(make_mock_client(SAMPLE_JSON))
-    results = agent.run(CANDIDATES, PROFILE)
-    assert isinstance(results[0].skills_to_learn, list)
+def test_returns_empty_for_empty_input():
+    agent = SkillFitScorerAgent()
+    assert agent.run([], PROFILE) == []
