@@ -164,13 +164,26 @@ class Orchestrator:
 
 
 def _to_briefs(scored: List[ScoredOpportunity]) -> List[OpportunityBrief]:
-    return [
-        OpportunityBrief(
+    briefs = []
+    for o in scored:
+        title_lower = o.title.lower()
+        industry_lower = o.industry.lower()
+
+        if o.industry == "unknown" or "marketplace" in title_lower:
+            leverage_model_type = "marketplace"
+            recommended_business_model = f"Two-sided marketplace connecting {o.industry} buyers and sellers"
+        elif "platform" in industry_lower or "platform" in title_lower:
+            leverage_model_type = "platform"
+            recommended_business_model = f"Platform play in {o.industry} with API/SDK monetization"
+        else:
+            leverage_model_type = "SaaS"
+            recommended_business_model = f"B2B SaaS targeting {o.industry} companies"
+
+        briefs.append(OpportunityBrief(
             **o.model_dump(),
-            recommended_business_model=f"B2B SaaS targeting {o.industry} companies",
-            leverage_model_type="SaaS",
+            recommended_business_model=recommended_business_model,
+            leverage_model_type=leverage_model_type,
             confidence_score=o.reachable_fit_score,
             confidence_rationale=o.fit_rationale,
-        )
-        for o in scored
-    ]
+        ))
+    return briefs

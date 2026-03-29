@@ -1,8 +1,11 @@
 import json
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
+
+if TYPE_CHECKING:
+    from tavily import TavilyClient
 
 
-def make_search_fn(tavily_client, max_results: int = 5) -> Callable[[str], str]:
+def make_search_fn(tavily_client: "TavilyClient", max_results: int = 5) -> Callable[[str], str]:
     """Return a function that queries Tavily and returns a JSON string of results."""
 
     def search(query: str) -> str:
