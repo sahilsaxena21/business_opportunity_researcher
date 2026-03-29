@@ -18,7 +18,7 @@ class BaseAgent:
         result = subprocess.run(
             [
                 "claude", "-p", user,
-                "--system", system,
+                "--system-prompt", system,
                 "--model", self.model,
                 "--output-format", "json",
             ],

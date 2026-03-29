@@ -34,7 +34,7 @@ def test_cli_call_parses_json_result(monkeypatch):
     assert result == "output text"
     assert "--output-format" in captured["args"]
     assert "json" in captured["args"]
-    assert "--system" in captured["args"]
+    assert "--system-prompt" in captured["args"]
     assert "--model" in captured["args"]
 
 
