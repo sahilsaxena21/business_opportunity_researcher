@@ -1,72 +1,75 @@
-import anthropic
+import json as _json
+import subprocess
 from src import config
+
+_SEARCH_INSTRUCTION = (
+    "\n\nYou have web search access. To search, output ONLY this line and nothing else:\n"
+    "SEARCH: <your query>\n"
+    "When you have enough information, output your final answer normally."
+)
 
 
 class BaseAgent:
-    def __init__(self, client: anthropic.Anthropic, model: str = "claude-sonnet-4-6"):
-        self.client = client
+    def __init__(self, model: str = config.MODEL):
         self.model = model
+
+    def _cli_call(self, system: str, user: str) -> str:
+        """Shell out to the Claude CLI and return the text result."""
+        result = subprocess.run(
+            [
+                "claude", "-p", user,
+                "--system", system,
+                "--model", self.model,
+                "--output-format", "json",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"Claude CLI error: {result.stderr.strip()}")
+        data = _json.loads(result.stdout)
+        return data.get("result", "")
 
     def call(self, system_prompt: str, user_prompt: str) -> str:
         """Single call to Claude, returns text content."""
-        message = self.client.messages.create(
-            model=self.model,
-            max_tokens=8096,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_prompt}],
-        )
-        return message.content[0].text
+        return self._cli_call(system_prompt, user_prompt)
 
-    def call_with_search(self, system_prompt: str, user_prompt: str, search_fn, max_searches: int = 5) -> str:
-        """Tool-use loop: Claude calls search_fn until it returns end_turn."""
-        tools = [
-            {
-                "name": "web_search",
-                "description": "Search the web for information. Use for market data, company info, trends.",
-                "input_schema": {
-                    "type": "object",
-                    "properties": {
-                        "query": {"type": "string", "description": "Search query"}
-                    },
-                    "required": ["query"],
-                },
-            }
-        ]
-
-        messages = [{"role": "user", "content": user_prompt}]
+    def call_with_search(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        search_fn,
+        max_searches: int = 5,
+    ) -> str:
+        """Dynamic search loop: Claude issues SEARCH: requests until it has enough info."""
+        search_results = []
         searches_used = 0
 
-        while True:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=8096,
-                system=system_prompt,
-                tools=tools,
-                messages=messages,
+        while searches_used < max_searches:
+            context = ""
+            if search_results:
+                context = "\n\nSearch results so far:\n" + "\n\n".join(
+                    f"[Search {i + 1}: {q}]\n{r}"
+                    for i, (q, r) in enumerate(search_results)
+                )
+
+            response = self._cli_call(
+                system_prompt + _SEARCH_INSTRUCTION,
+                user_prompt + context,
             )
 
-            if response.stop_reason == "end_turn":
-                for block in response.content:
-                    if hasattr(block, "text"):
-                        return block.text
-                return ""
+            if response.strip().upper().startswith("SEARCH:"):
+                query = response.strip()[7:].strip()
+                result = search_fn(query)
+                search_results.append((query, result))
+                searches_used += 1
+            else:
+                return response
 
-            if searches_used >= max_searches:
-                for block in response.content:
-                    if hasattr(block, "text"):
-                        return block.text
-                return ""
-
-            tool_results = []
-            for block in response.content:
-                if block.type == "tool_use" and block.name == "web_search":
-                    result = search_fn(block.input["query"])
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": result,
-                    })
-                    searches_used += 1
-
-            messages.append({"role": "assistant", "content": response.content})
-            messages.append({"role": "user", "content": tool_results})
+        # max_searches reached — force final answer without search option
+        context = "\n\nSearch results:\n" + "\n\n".join(
+            f"[Search {i + 1}: {q}]\n{r}"
+            for i, (q, r) in enumerate(search_results)
+        )
+        return self._cli_call(system_prompt, user_prompt + context)
