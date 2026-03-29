@@ -1,4 +1,6 @@
 # tests/agents/test_base.py
+import json
+import subprocess
 import pytest
 from unittest.mock import patch, MagicMock
 from src.agents.base import BaseAgent
@@ -17,17 +19,26 @@ def test_call_delegates_to_cli_call():
 
 
 def test_cli_call_parses_json_result(monkeypatch):
-    import subprocess, json
-    fake = MagicMock()
-    fake.returncode = 0
-    fake.stdout = json.dumps({"type": "result", "result": "output text"})
-    monkeypatch.setattr(subprocess, "run", lambda *a, **kw: fake)
+    captured = {}
+
+    def fake_run(args, **kwargs):
+        captured["args"] = args
+        fake = MagicMock()
+        fake.returncode = 0
+        fake.stdout = json.dumps({"type": "result", "result": "output text"})
+        return fake
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
     agent = ConcreteAgent()
-    assert agent._cli_call("sys", "usr") == "output text"
+    result = agent._cli_call("sys", "usr")
+    assert result == "output text"
+    assert "--output-format" in captured["args"]
+    assert "json" in captured["args"]
+    assert "--system" in captured["args"]
+    assert "--model" in captured["args"]
 
 
 def test_cli_call_raises_on_nonzero(monkeypatch):
-    import subprocess
     fake = MagicMock()
     fake.returncode = 1
     fake.stderr = "some error"
