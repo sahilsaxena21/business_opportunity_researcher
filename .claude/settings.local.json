@@ -7,7 +7,24 @@
       "Bash(git:*)",
       "Bash(pytest:*)",
       "Bash(python3:*)",
-      "Bash(claude --permission-mode acceptEdits)"
+      "Bash(claude --permission-mode acceptEdits)",
+      "Bash(py -3.9 --version)",
+      "Bash(py -3.10 --version)",
+      "Bash(py -3.11 --version)",
+      "Bash(py -3.9 -m pip install tavily-python anthropic)",
+      "Bash(py -3.9 main.py)",
+      "Bash(py -3.9 -m pip install python-dotenv)",
+      "Bash(py:*)",
+      "Bash(wc -l tests/agents/test_*.py)",
+      "Bash(claude -p --system-prompt \"You are helpful\" --output-format json --no-session-persistence --model claude-sonnet-4-6)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Read(//c/Users/Sahil/AppData/Local/Programs/Python//**)",
+      "Bash(/c/Users/Sahil/AppData/Local/Programs/Python/Python39/python.exe --version)",
+      "Bash(/c/Users/Sahil/AppData/Local/Programs/Python/Python39/python.exe main.py)",
+      "Read(//c/Users/Sahil/AppData/Local/Temp/claude/C--Users-Sahil-Documents-OD-ClaudeCodeTest-business-opportunity-researcher/63dabdd3-d74e-40f7-8d6f-8269190cb22e/tasks/**)",
+      "Bash(/c/Users/Sahil/AppData/Local/Programs/Python/Python39/python.exe -m pytest tests/ -q 2>&1)"
     ]
   }
 }
