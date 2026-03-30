@@ -17,17 +17,23 @@ class BaseAgent:
         """Shell out to the Claude CLI and return the text result."""
         result = subprocess.run(
             [
-                "claude", "-p", user,
+                "claude", "-p",
                 "--system-prompt", system,
                 "--model", self.model,
                 "--output-format", "json",
+                "--no-session-persistence",
             ],
+            input=user,
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=600,
         )
         if result.returncode != 0:
-            raise RuntimeError(f"Claude CLI error: {result.stderr.strip()}")
+            raise RuntimeError(
+                f"Claude CLI error (rc={result.returncode})\n"
+                f"  stderr: {result.stderr.strip()!r}\n"
+                f"  stdout: {result.stdout.strip()[:500]!r}"
+            )
         data = _json.loads(result.stdout)
         return data.get("result", "")
 
